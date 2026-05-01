@@ -5,6 +5,8 @@ services:
     image: redis:7
     container_name: smartv_redis
     restart: always
+    networks:
+      - backend
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -15,6 +17,8 @@ services:
     image: postgres:15
     container_name: smartv_db
     restart: always
+    networks:
+      - backend
     environment:
       POSTGRES_USER: smartv
       POSTGRES_PASSWORD: smartvpass
@@ -35,6 +39,9 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+    networks:
+      - frontend
+      - backend
     ports:
       - 8080:80
     environment:
@@ -52,6 +59,9 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+    networks:
+      - frontend
+      - backend
     ports:
       - 8081:80
     environment:
@@ -71,6 +81,8 @@ services:
         condition: service_healthy
       db:
         condition: service_healthy
+    networks:
+      - backend
     environment:
       REDIS_HOST: redis
       POSTGRES_HOST: db
@@ -80,3 +92,7 @@ services:
 
 volumes:
   smartv_db_data:
+
+networks:
+  frontend:
+  backend:
