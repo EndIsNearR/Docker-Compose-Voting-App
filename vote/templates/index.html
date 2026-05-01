@@ -5,25 +5,306 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Smart Voting — Vote</title>
     <style>
-      body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; }
-      .card { border: 1px solid #ddd; padding: 20px; border-radius: 6px; }
-      h1 { margin-top: 0 }
-      .options { display:flex; gap:12px; }
-      button { padding: 10px 18px; font-size:16px }
+      :root {
+        --bg: #07111f;
+        --panel: rgba(10, 18, 32, 0.72);
+        --panel-border: rgba(255, 255, 255, 0.12);
+        --text: #edf3ff;
+        --muted: #a9b4c7;
+        --accent: #6ee7ff;
+        --accent-2: #8b5cf6;
+        --accent-3: #22c55e;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Arial, Helvetica, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(110, 231, 255, 0.18), transparent 30%),
+          radial-gradient(circle at top right, rgba(139, 92, 246, 0.18), transparent 28%),
+          linear-gradient(160deg, #06101d 0%, #0b1730 50%, #050b15 100%);
+        overflow-x: hidden;
+      }
+
+      .aurora {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 20% 20%, rgba(110, 231, 255, 0.18), transparent 25%),
+          radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.18), transparent 22%),
+          radial-gradient(circle at 50% 80%, rgba(34, 197, 94, 0.12), transparent 25%);
+        filter: blur(12px);
+        animation: drift 12s ease-in-out infinite alternate;
+      }
+
+      .wrap {
+        position: relative;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 40px 20px 56px;
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 24px;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      .hero {
+        animation: rise 700ms ease both;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        padding: 8px 12px;
+        border: 1px solid var(--panel-border);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--muted);
+        font-size: 0.9rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: var(--accent);
+        box-shadow: 0 0 0 0 rgba(110, 231, 255, 0.7);
+        animation: pulse 1.8s infinite;
+      }
+
+      h1 {
+        margin: 18px 0 12px;
+        font-size: clamp(2.5rem, 5vw, 5rem);
+        line-height: 0.95;
+        letter-spacing: -0.04em;
+      }
+
+      .subtitle {
+        max-width: 620px;
+        color: var(--muted);
+        font-size: 1.05rem;
+        line-height: 1.7;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 24px;
+      }
+
+      .stat {
+        padding: 16px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--panel-border);
+        backdrop-filter: blur(14px);
+      }
+
+      .stat strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 1.3rem;
+      }
+
+      .card {
+        position: relative;
+        padding: 28px;
+        border-radius: 28px;
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 22px 80px rgba(0, 0, 0, 0.35);
+        overflow: hidden;
+      }
+
+      .card::before {
+        content: '';
+        position: absolute;
+        inset: auto -20% -40% auto;
+        width: 220px;
+        height: 220px;
+        background: radial-gradient(circle, rgba(110, 231, 255, 0.22), transparent 65%);
+        filter: blur(10px);
+      }
+
+      .question {
+        margin: 0 0 18px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .options {
+        display: grid;
+        gap: 14px;
+        margin: 18px 0 22px;
+      }
+
+      .option {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 18px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        cursor: pointer;
+        transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+      }
+
+      .option:hover {
+        transform: translateY(-2px);
+        border-color: rgba(110, 231, 255, 0.55);
+        background: rgba(110, 231, 255, 0.08);
+      }
+
+      .option input {
+        accent-color: var(--accent);
+        transform: scale(1.15);
+      }
+
+      .badge {
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        color: #06101d;
+        background: linear-gradient(135deg, var(--accent), #d7fbff);
+        font-weight: 700;
+      }
+
+      button {
+        width: 100%;
+        padding: 15px 18px;
+        border: none;
+        border-radius: 16px;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #06101d;
+        background: linear-gradient(135deg, var(--accent), #d7fbff 55%, #9ff3d0);
+        cursor: pointer;
+        box-shadow: 0 14px 40px rgba(110, 231, 255, 0.22);
+        transition: transform 180ms ease, box-shadow 180ms ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 16px 46px rgba(110, 231, 255, 0.3);
+      }
+
+      .links {
+        margin-top: 18px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .floating {
+        position: absolute;
+        inset: auto 10% 8% auto;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.35), rgba(139, 92, 246, 0.02) 68%);
+        animation: float 6s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(110, 231, 255, 0.6); }
+        70% { box-shadow: 0 0 0 14px rgba(110, 231, 255, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(110, 231, 255, 0); }
+      }
+
+      @keyframes drift {
+        from { transform: translate3d(-1%, -1%, 0) scale(1); }
+        to { transform: translate3d(1.5%, 2%, 0) scale(1.04); }
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-14px); }
+      }
+
+      @keyframes rise {
+        from { opacity: 0; transform: translateY(22px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @media (max-width: 880px) {
+        .wrap { grid-template-columns: 1fr; padding-top: 24px; }
+        .stats { grid-template-columns: 1fr; }
+      }
     </style>
   </head>
   <body>
-    <div class="card">
-      <h1>Smart Voting</h1>
-      <p>Choose your favorite option and click Vote.</p>
-      <form action="/vote" method="post">
-        <div class="options">
-          <label><input type="radio" name="choice" value="Cats" required> Cats</label>
-          <label><input type="radio" name="choice" value="Dogs" required> Dogs</label>
+    <div class="aurora"></div>
+    <main class="wrap">
+      <section class="hero">
+        <span class="eyebrow"><span class="dot"></span> Live demo voting app</span>
+        <h1>Smart Voting.<br />Fast, simple, interactive.</h1>
+        <p class="subtitle">
+          Cast a vote, watch the result page update in real time, and show off a clean container-based workflow to your mentor.
+        </p>
+
+        <div class="stats">
+          <div class="stat">
+            Queue
+            <strong>Redis</strong>
+          </div>
+          <div class="stat">
+            Storage
+            <strong>PostgreSQL</strong>
+          </div>
+          <div class="stat">
+            UI
+            <strong>Live Feedback</strong>
+          </div>
         </div>
-        <p><button type="submit">Vote</button></p>
-      </form>
-      <p>See live results at <a href="/">this app</a> or the <a href="http://localhost:8081">Results page</a>.</p>
-    </div>
+      </section>
+
+      <section class="card">
+        <div class="floating"></div>
+        <p class="question">Choose your favorite option and submit your vote.</p>
+        <form action="/vote" method="post">
+          <div class="options">
+            <label class="option">
+              <span>
+                <input type="radio" name="choice" value="Cats" required />
+                <strong>Cats</strong>
+              </span>
+              <span class="badge">Popular</span>
+            </label>
+
+            <label class="option">
+              <span>
+                <input type="radio" name="choice" value="Dogs" required />
+                <strong>Dogs</strong>
+              </span>
+              <span class="badge">Friendly</span>
+            </label>
+          </div>
+
+          <button type="submit">Send Vote</button>
+        </form>
+
+        <p class="links">
+          Open <a href="http://localhost:8081">live results</a> or come back here and vote again.
+        </p>
+      </section>
+    </main>
   </body>
 </html>
