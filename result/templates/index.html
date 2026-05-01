@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Smart Voting — Results</title>
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; }
+      .card { border: 1px solid #ddd; padding: 20px; border-radius: 6px; }
+      h1 { margin-top: 0 }
+      .count { font-size: 24px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Live Results</h1>
+      <div>
+        <div>Cats: <span id="cats" class="count">0</span></div>
+        <div>Dogs: <span id="dogs" class="count">0</span></div>
+      </div>
+      <p>Auto-updates every 2 seconds.</p>
+      <p><a href="http://localhost:8080">Back to Vote</a></p>
+    </div>
+
+    <script>
+      async function fetchCounts(){
+        try{
+          const res = await fetch('/results');
+          const data = await res.json();
+          document.getElementById('cats').textContent = data.Cats || 0;
+          document.getElementById('dogs').textContent = data.Dogs || 0;
+        }catch(e){ console.error(e); }
+      }
+      fetchCounts();
+      setInterval(fetchCounts, 2000);
+    </script>
+  </body>
+</html>

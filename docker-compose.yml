@@ -1,0 +1,82 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:7
+    container_name: smartv_redis
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
+  db:
+    image: postgres:15
+    container_name: smartv_db
+    restart: always
+    environment:
+      POSTGRES_USER: smartv
+      POSTGRES_PASSWORD: smartvpass
+      POSTGRES_DB: smartvdb
+    volumes:
+      - smartv_db_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartv"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
+  vote:
+    build: ./vote
+    container_name: smartv_vote
+    restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - 8080:80
+    environment:
+      REDIS_HOST: redis
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
+      interval: 10s
+      timeout: 2s
+      retries: 5
+
+  result:
+    build: ./result
+    container_name: smartv_result
+    restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - 8081:80
+    environment:
+      REDIS_HOST: redis
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
+      interval: 10s
+      timeout: 2s
+      retries: 5
+
+  worker:
+    build: ./worker
+    container_name: smartv_worker
+    restart: always
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    environment:
+      REDIS_HOST: redis
+      POSTGRES_HOST: db
+      POSTGRES_DB: smartvdb
+      POSTGRES_USER: smartv
+      POSTGRES_PASSWORD: smartvpass
+
+volumes:
+  smartv_db_data:

@@ -1,0 +1,6 @@
+-- Initialize votes table
+CREATE TABLE IF NOT EXISTS votes (
+  id SERIAL PRIMARY KEY,
+  choice VARCHAR(50) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
