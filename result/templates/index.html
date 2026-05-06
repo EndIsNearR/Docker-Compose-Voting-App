@@ -299,7 +299,7 @@
         <span class="eyebrow"><span class="dot"></span> Live results dashboard</span>
         <h1>See the vote race in real time.</h1>
         <p class="subtitle">
-          This page pulls the latest counts from Redis every 2 seconds, so the change is easy to explain and easy to watch.
+          This page queries PostgreSQL every 2 seconds, so the displayed totals always come from the database.
         </p>
 
         <div class="mini-stats">
@@ -352,7 +352,7 @@
         <div class="summary">
           <div class="summary-item">
             <span>Fast UI source</span>
-            <strong>Redis</strong>
+            <strong>PostgreSQL</strong>
           </div>
           <div class="summary-item">
             <span>Historical store</span>

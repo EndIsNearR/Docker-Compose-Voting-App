@@ -59,13 +59,18 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      db:
+        condition: service_healthy
     networks:
       - frontend
       - backend
     ports:
       - 8081:80
     environment:
-      REDIS_HOST: redis
+      POSTGRES_HOST: db
+      POSTGRES_DB: smartvdb
+      POSTGRES_USER: smartv
+      POSTGRES_PASSWORD: smartvpass
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:80/health || exit 1"]
       interval: 10s

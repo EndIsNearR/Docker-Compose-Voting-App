@@ -23,7 +23,7 @@ Folders and key files:
 How containers talk to each other
 - `vote` pushes JSON messages onto Redis list `votes` and increments Redis hash `counts`.
 - `worker` uses `BLPOP votes` on Redis to consume votes and inserts rows into Postgres.
-- `result` reads Redis hash `counts` to show live counts (fast) and updates in the DB are the canonical history.
+- `result` reads PostgreSQL directly with `COUNT(*) GROUP BY choice` to show the live totals from the database.
 - Docker Compose provides an internal network; services use service names (`redis`, `db`) as hostnames.
 - Docker Compose now uses two named networks, and the apps reach Redis and Postgres through Docker DNS hostnames.
 
@@ -42,3 +42,4 @@ Notes for presentation
 - The worker decouples web requests from DB writes — this is common in production.
 - The `db` volume keeps votes even after containers stop.
 - The frontend network is for browser-facing apps, while the backend network keeps the queue and database private.
+- The results page now proves the database is the source of truth for displayed totals.
